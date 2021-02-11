@@ -45,7 +45,7 @@ class CSAHSICEstimator:
         return W
     
     
-    def z(self, V1, V2, Cov1, Cov2, W):
+    def computeHSICIndex(self, V1, V2, Cov1, Cov2, W):
         if self.HSICEstimatorType == ot.HSICEstimator.Vstat:
             return self._VStatEstimator(V1, V2, Cov1, Cov2, W)
         elif self.HSICEstimatorType == ot.HSICEstimator.Ustat:
