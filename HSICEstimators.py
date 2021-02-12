@@ -3,8 +3,11 @@ import openturns as ot
 import matplotlib.pyplot as plt
 
 
-####Conditional sensitivity analysis estimator, only V-stat estimator and asymptotic p-value estimation
 class CSAHSICEstimator:
+    """
+    Conditional sensitivity analysis estimator, only V-stat estimator and asymptotic p-value estimation
+
+    """
 
     def __init__(self, CovarianceList, X, Y, HSICEstimatorType, weightFunction):
         self.CovX = CovarianceList[0]
@@ -191,10 +194,13 @@ class CSAHSICEstimator:
         
         return 0
 
-####Global sensitivity analysis estimator, both V-stat and U-stat estimator as well as asymptotic and permutation p-value estimation
 
 class GSAHSICEstimator(CSAHSICEstimator):
-    
+    """
+    Global sensitivity analysis estimator, both V-stat and U-stat estimator as well as asymptotic and permutation p-value estimation
+
+    """
+
     def __init__(self, CovarianceList, X, Y, HSICEstimatorType):
         self.CovX = CovarianceList[0]
         self.CovY = CovarianceList[1]
@@ -255,10 +261,14 @@ class GSAHSICEstimator(CSAHSICEstimator):
 
             self.PValues.append(p)
         return 0
-    
-####Target sensitivity analysis estimator, both V-stat and U-stat estimator as well as asymptotic and permutation p-value estimation
+
+
 class TSAHSICEstimator(GSAHSICEstimator):
-    
+    """
+    Target sensitivity analysis estimator, both V-stat and U-stat estimator as well as asymptotic and permutation p-value estimation
+
+    """
+
     def __init__(self, CovarianceList, X, Y, HSICEstimatorType, weightFunction):
         self.CovX = CovarianceList[0]
         self.CovY = CovarianceList[1]
