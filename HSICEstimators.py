@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 
 ot_HSICEstimator_Vstat = 1
 ot_HSICEstimator_Ustat = 2
+ot_HSICEstimator_AsymptoticPValuesEstimator = 1
+ot_HSICEstimator_PermutationPValuesEstimator = 2
 
 class CSAHSICEstimator:
     """
@@ -19,7 +21,8 @@ class CSAHSICEstimator:
         self.HSICEstimatorType = HSICEstimatorType
         self.weightFunction = weightFunction
         self.PValueEstimatorType = None
-
+        self.n = X.getSize()
+        self.d = X.getDimension()
 
     def computeGramMatrix(self,sample,Cov):
         m = ot.Mesh(sample)
@@ -29,18 +32,14 @@ class CSAHSICEstimator:
     
     
     def _computeWeightMatrix(self,Y):
-        n = Y.getSize()
         
-        if self.weightFunction == None: #GSA case
-            W = np.eye(n)
-        else:
-            W = np.zeros((n,n))
-    
-            w = np.empty(n)
-            for i in range(n):
-                w[i] = self.weightFunction.function(Y[i])
-            w = w/np.mean(w)
-            np.fill_diagonal(W, w)
+        W = np.zeros((self.n,self.n))
+
+        w = np.empty(self.n)
+        for i in range(self.n):
+            w[i] = self.weightFunction.function(Y[i])
+        w = w/np.mean(w)
+        np.fill_diagonal(W, w)
             
         return W
     
@@ -55,17 +54,16 @@ class CSAHSICEstimator:
         
         
     def _VStatEstimator(self, V1, V2, Cov1, Cov2, W): 
-        n = V1.getSize()
             
-        U = np.ones((n,n))
-        H1 = np.eye(n) - 1/n*U@W
-        H2 = np.eye(n) - 1/n*W@U
+        U = np.ones((self.n,self.n))
+        H1 = np.eye(self.n) - 1/self.n*U@W
+        H2 = np.eye(self.n) - 1/self.n*W@U
         
         Kv1 = self.computeGramMatrix(V1,Cov1)
 
         Kv2 = self.computeGramMatrix(V2,Cov2)
         
-        HSIC = 1/n**2*np.trace(W @ Kv1 @ W @ H1 @ Kv2 @ H2)
+        HSIC = 1/self.n**2*np.trace(W @ Kv1 @ W @ H1 @ Kv2 @ H2)
 
         return HSIC
     
@@ -76,14 +74,12 @@ class CSAHSICEstimator:
     
 
     def computeIndices(self):
-        d = self.X.getDimension()
-
         W = self._computeWeightMatrix(self.Y)
             
         self.HSIC_XY = []
         self.HSIC_XX = []
 
-        for dim in range(d):
+        for dim in range(self.d):
             
             self.HSIC_XY.append( self.computeHSICIndex(self.X[:,dim], self.Y, self.CovX[dim], self.CovY, W))
             self.HSIC_XX.append( self.computeHSICIndex(self.X[:,dim], self.X[:,dim], self.CovX[dim], self.CovX[dim], W))
@@ -91,7 +87,7 @@ class CSAHSICEstimator:
         self.HSIC_YY = self.computeHSICIndex(self.Y, self.Y, self.CovY, self.CovY, W)
         
         self.R2HSICIndices =[]
-        for dim in range(d):
+        for dim in range(self.d):
             self.R2HSICIndices.append(self.HSIC_XY[dim]/np.sqrt(self.HSIC_XX[dim]*self.HSIC_YY))
 
         return 0
@@ -103,9 +99,9 @@ class CSAHSICEstimator:
         
         
     def computePValues(self):
-        if self.PValueEstimatorType == ot.HSICEstimator.AsymptoticPValuesEstimator:
+        if self.PValueEstimatorType == ot_HSICEstimator_PermutationPValuesEstimator:
             self._computePValuesPermutation()
-        elif self.PValueEstimatorType == ot.HSICEstimator.PermutationPValuesEstimator:
+        elif self.PValueEstimatorType == ot_HSICEstimator_AsymptoticPValuesEstimator:
             self._computePValuesAsymptotic()
         else:
             raise ValueError('Invalid p-value estimator type')
@@ -113,23 +109,25 @@ class CSAHSICEstimator:
 
         
     def _computePValuesPermutation(self):
-        n = self.X.getSize()
-        d = self.X.getDimension()
-        
         if self.weightFunction == None: #GSA case
-            W_obs = np.eye(n)
+            W_obs = np.eye(self.n)
         else:
             W_obs = self._computeWeightMatrix(self.Y)
         self.PValues = []
         
-        for dim in d:
+        # permutations = list[ot.KPermutations(self.n).generate()] ###Does not work, too computationaly intensive
+        # perm_selected = random.sample(permutations,self.PermutationBootstrapSize)
+        
+        for dim in range(self.d):
             HSIC_obs = self.computeHSICIndex(self.X[:,dim],self.Y, self.CovX[dim], self.CovY, W_obs) 
             HSIC_l = [HSIC_obs]
             for b in range(self.PermutationBootstrapSize):
                 Y_p = np.random.permutation(self.Y)
+                # Y_p = self.Y[[perm_selected[b]]] 
+
                 
                 if self.weightFunction == None: #GSA case
-                    W = np.eye(n)
+                    W = np.eye(self.n)
                 else:
                     W = self._computeWeightMatrix(Y_p)
                     
@@ -162,30 +160,27 @@ class CSAHSICEstimator:
 
 
     def drawHSICIndices(self):
-        d = len(self.HSIC_XY)
         plt.figure()
-        plt.plot(np.arange(1,d+1),self.HSIC_XY,'*')
-        plt.xticks(np.arange(1,d+1))
+        plt.plot(np.arange(1,self.d+1),self.HSIC_XY,'*')
+        plt.xticks(np.arange(1,self.d+1))
         plt.xlabel('Variable index')
         plt.ylabel('HSIC indices')
         
         return 0
     
     def drawR2HSICIIndices(self):
-        d = len(self.R2HSICIndices)
         plt.figure()
-        plt.plot(np.arange(1,d+1),self.R2HSICIndices,'*')
-        plt.xticks(np.arange(1,d+1))
+        plt.plot(np.arange(1,self.d+1),self.R2HSICIndices,'*')
+        plt.xticks(np.arange(1,self.d+1))
         plt.xlabel('Variable index')
         plt.ylabel('R2-HSIC indices')
         
         return 0
 
     def drawPValues(self):
-        d = len(self.PValues)
         plt.figure()
-        plt.plot(np.arange(1,d+1),self.PValues,'*')
-        plt.xticks(np.arange(1,d+1))
+        plt.plot(np.arange(1,self.d+1),self.PValues,'*')
+        plt.xticks(np.arange(1,self.d+1))
         plt.xlabel('Variable index')
         plt.ylabel('p-values')
         
@@ -206,7 +201,15 @@ class GSAHSICEstimator(CSAHSICEstimator):
         self.HSICEstimatorType = HSICEstimatorType
         self.weightFunction = None
         self.PValueEstimatorType = None
+        self.n = X.getSize()
+        self.d = X.getDimension()
 
+
+    def _computeWeightMatrix(self,Y):
+        
+        W = np.eye(self.n)
+            
+        return W
 
     def _UStatEstimator(self, V1, V2, Cov1, Cov2, W = None): #W is a mute parameters which allows to call in the same fashion both estimators        
         # Kv1 = self.computeGramMatrix(V1,Cov1)
@@ -219,50 +222,50 @@ class GSAHSICEstimator(CSAHSICEstimator):
         #         Bij = Kv2[i,j] - np.mean(Kv2[i,:]) - np.mean(Kv2[:,j])  + np.mean(Kv2) 
         #         HSIC += Aij*Bij
         # HSIC = 1/n**2*HSIC
-        
-        n = V1.getSize()
-        
+                
         Kv1 = self.computeGramMatrix(V1,Cov1)
         Kv1_ = Kv1-np.diag(np.diag(Kv1))
         Kv2 = self.computeGramMatrix(V2,Cov2)
         Kv2_ = Kv2-np.diag(np.diag(Kv1))
-        One = np.ones((n,1))
+        One = np.ones((self.n,1))
 
-        HSIC = 1/n/(n-3) * (np.trace(Kv1_ @ Kv2_) - 2/(n-2)* One.T @ Kv1_ @ Kv2_ @ One + One.T @ Kv1_ @ One * One.T @ Kv2_ @ One / (n-1)/(n-2) )
+        HSIC = 1/self.n/(self.n-3) * (np.trace(Kv1_ @ Kv2_) - 2/(self.n-2)* One.T @ Kv1_ @ Kv2_ @ One + One.T @ Kv1_ @ One * One.T @ Kv2_ @ One / (self.n-1)/(self.n-2) )
         
         return HSIC[0,0]
     
 
-    def computePValuesAsymptotic(self):
-
-        n = self.X.getSize()
-        d = self.X.getDimension()
-        
-        W = np.eye(n)
+    def _computePValuesAsymptotic(self):
+        W = np.eye(self.n)
 
         self.PValues = []
         
+        H = np.eye(self.n) - 1/self.n*np.ones((self.n,self.n))
         Ky = self.computeGramMatrix(self.Y,self.CovY)
-
+        Ey = 1/self.n/(self.n-1)*np.sum(Ky - np.diag(np.diag(Ky)))
+        By = H @ Ky @ H
         
-        for dim in d:
-            HSIC_obs = self.computeHSICIndex(self.X[:,dim],self.Y, W)
+        for dim in range(self.d):
+            HSIC_obs = self.computeHSICIndex(self.X[:,dim],self.Y, self.CovX[dim], self.CovY, W) 
+            
             Kx = self.computeGramMatrix(self.X[:,dim],self.CovX[dim])
 
-            Ex = 1/n/(n-1)*np.sum(np.sum(Kx - np.diag(np.diag(Kx))))
-            Ey = 1/n/(n-1)*np.sum(np.sum(Ky - np.diag(np.diag(Ky))))
-
-            H = np.eye(n) - 1/n*np.ones((n,n))
-
-            B = np.multiply(H @ Kx @ H, H @ Ky @ H)
+            Ex = 1/self.n/(self.n-1)*np.sum(Kx - np.diag(np.diag(Kx)))
+            
+            Bx = H @ Kx @ H
+            B = np.multiply(Bx,By)
             B = B**2
             
-            V = 2*(n-4)*(n-5)/n/(n-1)/(n-2)/(n-3)*np.ones((1,n)) @ (B - np.diag(np.diag(B))) @ np.ones((n,1))
+            mHSIC = 1/self.n*(1+Ex*Ey-Ex-Ey)
+            varHSIC = 2*(self.n-4)*(self.n-5)/self.n/(self.n-1)/(self.n-2)/(self.n-3)*np.ones((1,self.n)) @ (B - np.diag(np.diag(B))) @ np.ones((self.n,1)) /self.n /(self.n-1)
+            varHSIC = varHSIC[0,0]
             
-            gamma = 1/n**2*(1+Ex*Ey-Ex-Ey)**2/V
-            beta = n**2*V/(1+Ex*Ey-Ex-Ey)
-            Gamma = ot.Gamma(gamma,beta)
-            p = Gamma.computeComplementaryCDF(HSIC_obs)
+            alpha = mHSIC**2/varHSIC
+            beta = self.n*varHSIC/mHSIC
+
+            Gamma = ot.Gamma(alpha,1/beta)
+
+            p = Gamma.computeComplementaryCDF(HSIC_obs*self.n) #Check if we need n!!!!
+            # p = 1.-Gamma.computeCDF(HSIC_obs*self.n) #Check if we need n!!!!
 
             self.PValues.append(p)
         return 0
@@ -282,8 +285,8 @@ class TSAHSICEstimator(GSAHSICEstimator):
         self.HSICEstimatorType = HSICEstimatorType
         self.weightFunction = weightFunction
         self.PValueEstimatorType = None
+        self.n = X.getSize()
+        self.d = X.getDimension()
         
-        
-        n = len(self.Y)
-        for i in range(n):
-            self.Y[i] = self.weightFunction.function(self.Y[i])
+        for i in range(self.n):
+            self.Y[i] = [self.weightFunction.function(self.Y[i])]
