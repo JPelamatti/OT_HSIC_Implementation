@@ -4,6 +4,15 @@ import HSICEstimators
 import matplotlib.pyplot as plt
 import HSICSAWeightFunctions
 
+'''Test -case definition'''
+X1 = ot.Uniform(-np.pi,np.pi)
+X2 = ot.Uniform(-np.pi,np.pi)
+X3 = ot.Uniform(-np.pi,np.pi)
+X = ot.ComposedDistribution([X1,X2,X3])
+X = ot.RandomVector(X)
+fun = ot.SymbolicFunction(['x1','x2','x3'],['sin(x1) + 5*sin(x2)^2 + 0.1*(x3)^4*sin(x1)'])
+
+
 '''Definition of the kronecker covariance function'''
     
 def rho(t):
