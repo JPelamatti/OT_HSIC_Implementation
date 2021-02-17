@@ -120,7 +120,7 @@ class CSAHSICEstimator:
         
         for dim in range(self.d):
             HSIC_obs = self.computeHSICIndex(self.X[:,dim],self.Y, self.CovX[dim], self.CovY, W_obs) 
-            HSIC_l = [HSIC_obs]
+            HSIC_l = []
             for b in range(self.PermutationBootstrapSize):
                 Y_p = np.random.permutation(self.Y)
                 # Y_p = self.Y[[perm_selected[b]]] 
@@ -133,11 +133,7 @@ class CSAHSICEstimator:
                     
                 HSIC_l.append(self.computeHSICIndex(self.X[:,dim],Y_p, self.CovX[dim], self.CovY, W)) 
             
-            p = 0
-            for index in HSIC_l:
-                if index > HSIC_obs:
-                    p += 1
-            p = p/(self.PermutationBootstrapSize+1)
+            p = np.count_nonzero(np.array(HSIC_l) > HSIC_obs)/(self.PermutationBootstrapSize+1)
             
             self.PValues.append(p)
         return 0
@@ -263,9 +259,13 @@ class GSAHSICEstimator(CSAHSICEstimator):
             beta = self.n*varHSIC/mHSIC
 
             Gamma = ot.Gamma(alpha,1/beta)
-
-            p = Gamma.computeComplementaryCDF(HSIC_obs*self.n) #Check if we need n!!!!
-            # p = 1.-Gamma.computeCDF(HSIC_obs*self.n) #Check if we need n!!!!
+            
+            if self.HSICEstimatorType == ot_HSICEstimator_Vstat:
+                p = Gamma.computeComplementaryCDF(HSIC_obs*self.n) 
+            elif self.HSICEstimatorType == ot_HSICEstimator_Ustat:
+                p = Gamma.computeComplementaryCDF(HSIC_obs*self.n + mHSIC*self.n)  #Why?!
+            else:
+                raise ValueError('Unknown estimator type for asymptotic p-value estimation')
 
             self.PValues.append(p)
         return 0
