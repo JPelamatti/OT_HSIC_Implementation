@@ -9,14 +9,15 @@ class HSICSAWeightFunction:
         
     def _distanceFromC(self,y):
         for c in self.C:
-            if y >= c[0] and y <= c[1]:
-                d = 0.
-               
+            if y[0] >= c[0] and y[0] <= c[1]:
+                dmin = 0.
+                return dmin
+            
         dmin = np.inf
-        if d != 0.:
-            for c in self.C:
-                if np.min([np.abs(y-c[0]),np.abs(y-c[1])]) < dmin:
-                    dmin = np.min([np.abs(y-c[0]),np.abs(y-c[1])])
+        
+        for c in self.C:
+            if np.min([np.abs(y[0]-c[0]),np.abs(y[0]-c[1])]) < dmin:
+                dmin = np.min([np.abs(y[0]-c[0]),np.abs(y[0]-c[1])])
                     
         return dmin
 
@@ -24,7 +25,7 @@ class HSICSAWeightFunction:
 class HSICSAExponentialWeightFunction(HSICSAWeightFunction):
 
     def function(self,y):
-        return np.exp(-self._distanceFromC(y) /self.weightFunctionParameters[0])
+        return np.exp(-self._distanceFromC(y) /(self.weightFunctionParameters[0]*self.weightFunctionParameters[1]/5.))
 
 
 class HSICSAStepWeightFunction(HSICSAWeightFunction):
