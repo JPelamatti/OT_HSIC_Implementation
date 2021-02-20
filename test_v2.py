@@ -3,6 +3,7 @@ import openturns as ot
 import HSICEstimators
 import matplotlib.pyplot as plt
 import HSICSAWeightFunctions
+from HSICStat import HSICvStat, HSICuStat
 
 """Test -case definition"""
 X1 = ot.Uniform(-np.pi, np.pi)
@@ -32,8 +33,6 @@ kronCov = ot.StationaryFunctionalCovarianceModel([1.0], [1.0], rho)
 """Load data"""
 plt.close("all")
 
-ot_HSICEstimator_Vstat = 1
-ot_HSICEstimator_Ustat = 2
 ot_HSICEstimator_AsymptoticPValuesEstimator = 1
 ot_HSICEstimator_PermutationPValuesEstimator = 2
 
@@ -57,8 +56,8 @@ for i in range(d):
 
 
 """test parameters"""
-# Estimatortype = ot_HSICEstimator_Ustat
-Estimatortype = ot_HSICEstimator_Vstat
+# Estimatortype = HSICuStat()
+Estimatortype = HSICvStat()
 
 pValueEstimation = ot_HSICEstimator_PermutationPValuesEstimator
 # pValueEstimation = ot_HSICEstimator_AsymptoticPValuesEstimator
@@ -112,12 +111,12 @@ if SA == "GSA":
 
 if SA == "TSA":
     Estimator = HSICEstimators.TSAHSICEstimator(
-        CovarianceList, inputSample, outputSample, Estimatortype, weightFunction
+        CovarianceList, inputSample, outputSample, weightFunction, Estimatortype
     )
 
 if SA == "CSA":
     Estimator = HSICEstimators.CSAHSICEstimator(
-        CovarianceList, inputSample, outputSample, Estimatortype, weightFunction
+        CovarianceList, inputSample, outputSample, weightFunction, Estimatortype
     )
 
 
