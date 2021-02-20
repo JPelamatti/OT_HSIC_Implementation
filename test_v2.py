@@ -33,9 +33,6 @@ kronCov = ot.StationaryFunctionalCovarianceModel([1.0], [1.0], rho)
 """Load data"""
 plt.close("all")
 
-ot_HSICEstimator_AsymptoticPValuesEstimator = 1
-ot_HSICEstimator_PermutationPValuesEstimator = 2
-
 loaded_sample = ot.Sample.ImportFromCSVFile("sample.csv", ",")
 d = loaded_sample.getDimension() - 1
 N = loaded_sample.getSize()
@@ -58,9 +55,6 @@ for i in range(d):
 """test parameters"""
 # Estimatortype = HSICuStat()
 Estimatortype = HSICvStat()
-
-pValueEstimation = ot_HSICEstimator_PermutationPValuesEstimator
-# pValueEstimation = ot_HSICEstimator_AsymptoticPValuesEstimator
 
 B = 1000  # Only used for permutatio p-value estimation
 
@@ -126,10 +120,6 @@ Estimator.computeIndices()
 print(Estimator.getR2HSICIIndices())
 print(Estimator.HSIC_XY)
 
-if pValueEstimation == ot_HSICEstimator_PermutationPValuesEstimator:
-    Estimator.parameterizePValueEstimator(pValueEstimation, 10000)
-else:
-    Estimator.parameterizePValueEstimator(pValueEstimation)
+Estimator.setPermutationBootstrapSize(100)
 
-Estimator.computePValues()
-print(Estimator.getPValues())
+print(Estimator.getPValuesPermutation())

@@ -3,8 +3,6 @@ import openturns as ot
 import matplotlib.pyplot as plt
 from HSICStat import HSICvStat
 
-ot_HSICEstimator_AsymptoticPValuesEstimator = 1
-ot_HSICEstimator_PermutationPValuesEstimator = 2
 
 class CSAHSICEstimator:
     """
@@ -25,9 +23,10 @@ class CSAHSICEstimator:
         self.Y = Y
         self.HSICstat = HSICstat
         self.weightFunction = weightFunction
-        self.PValueEstimatorType = None
         self.n = X.getSize()
         self.d = X.getDimension()
+        self._alreadyComputedPValuesAsymptotic = False
+        self.setPermutationBootstrapSize(10000)
 
     def getStatLetter(self):
         """Return the letter of the statistic used as HSIC estimator."""
@@ -77,27 +76,19 @@ class CSAHSICEstimator:
 
         return 0
 
-    def parameterizePValueEstimator(self, PValueEstimatorType, B=None):
-        self.PValueEstimatorType = PValueEstimatorType
-        self.PermutationBootstrapSize = (
-            B
-        )  # If PValueEstimatorType == ot.HSICEstimator.PermutationPValuesEstimator
+    def setPermutationBootstrapSize(self, B):
+        self._alreadyComputedPValuesPermutation = False
+        self.PermutationBootstrapSize = B
 
-    def computePValues(self):
-        if self.PValueEstimatorType == ot_HSICEstimator_PermutationPValuesEstimator:
-            self._computePValuesPermutation()
-        elif self.PValueEstimatorType == ot_HSICEstimator_AsymptoticPValuesEstimator:
-            self._computePValuesAsymptotic()
-        else:
-            raise ValueError("Invalid p-value estimator type")
-        return 0
+    def getPermutationBootstrapSize(self):
+        return self.PermutationBootstrapSize
 
     def _computePValuesPermutation(self):
         if self.weightFunction == None:  # GSA case
             W_obs = np.eye(self.n)
         else:
             W_obs = self._computeWeightMatrix(self.Y)
-        self.PValues = []
+        self.PValuesPermutation = []
 
         # permutations = list[ot.KPermutations(self.n).generate()] ###Does not work, too computationaly intensive
         # perm_selected = random.sample(permutations,self.PermutationBootstrapSize)
@@ -126,7 +117,8 @@ class CSAHSICEstimator:
                 self.PermutationBootstrapSize + 1
             )
 
-            self.PValues.append(p)
+            self.PValuesPermutation.append(p)
+        self._alreadyComputedPValuesPermutation = True
         return 0
 
     def _computePValuesAsymptotic(self):
@@ -140,8 +132,15 @@ class CSAHSICEstimator:
     def getR2HSICIIndices(self):
         return self.R2HSICIndices
 
-    def getPValues(self):
-        return self.PValues
+    def getPValuesPermutation(self):
+        if not self._alreadyComputedPValuesPermutation:
+            self._computePValuesPermutation()
+        return ot.Point(self.PValuesPermutation)
+
+    def getPValuesAsymptotic(self):
+        if not self._alreadyComputedPValuesAsymptotic:
+            self._computePValuesAsymptotic()
+        return ot.Point(self.PValuesAsymptotic)
 
     def drawHSICIndices(self):
         plt.figure()
@@ -161,15 +160,23 @@ class CSAHSICEstimator:
 
         return 0
 
-    def drawPValues(self):
+    def drawPValuesPermutation(self):
         plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.PValues, "*")
+        plt.plot(np.arange(1, self.d + 1), self.getPValuesPermutation(), "*")
         plt.xticks(np.arange(1, self.d + 1))
         plt.xlabel("Variable index")
         plt.ylabel("p-values")
 
         return 0
 
+    def drawPValuesAsymptotic(self):
+        plt.figure()
+        plt.plot(np.arange(1, self.d + 1), self.getPValuesAsymptotic(), "*")
+        plt.xticks(np.arange(1, self.d + 1))
+        plt.xlabel("Variable index")
+        plt.ylabel("p-values")
+
+        return 0
 
 
 class GSAHSICEstimator(CSAHSICEstimator):
@@ -185,9 +192,10 @@ class GSAHSICEstimator(CSAHSICEstimator):
         self.Y = Y
         self.HSICstat = HSICstat
         self.weightFunction = None
-        self.PValueEstimatorType = None
         self.n = X.getSize()
         self.d = X.getDimension()
+        self._alreadyComputedPValuesAsymptotic = False
+        self.setPermutationBootstrapSize(10000)
 
     def _computeWeightMatrix(self, Y):
 
@@ -198,7 +206,7 @@ class GSAHSICEstimator(CSAHSICEstimator):
     def _computePValuesAsymptotic(self):
         W = np.eye(self.n)
 
-        self.PValues = []
+        self.PValuesAsymptotic = []
 
         H = np.eye(self.n) - 1 / self.n * np.ones((self.n, self.n))
         Ky = self.CovY.discretize(self.Y)
@@ -241,7 +249,8 @@ class GSAHSICEstimator(CSAHSICEstimator):
             gamma = ot.Gamma(alpha, 1 / beta)
             p = self.HSICstat._computePValue(gamma, self.n, HSIC_obs, mHSIC)
 
-            self.PValues.append(p)
+            self.PValuesAsymptotic.append(p)
+        self._alreadyComputedPValuesAsymptotic = True
         return 0
 
 
@@ -258,9 +267,10 @@ class TSAHSICEstimator(GSAHSICEstimator):
         self.Y = Y
         self.HSICstat = HSICstat
         self.weightFunction = weightFunction
-        self.PValueEstimatorType = None
         self.n = X.getSize()
         self.d = X.getDimension()
+        self._alreadyComputedPValuesAsymptotic = False
+        self.setPermutationBootstrapSize(10000)
 
         for i in range(self.n):
             self.Y[i] = [self.weightFunction.function(self.Y[i])]
