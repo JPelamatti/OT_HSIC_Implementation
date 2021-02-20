@@ -50,7 +50,7 @@ x_covariance_collection = []
 for i in range(d):
     cov = ot.SquaredExponential()
     cov.setScale(
-        [inputSample[:, i].computeStandardDeviation()[0, 0]]
+        inputSample[:, i].computeStandardDeviation()
     )  # Gaussian kernel parameterization
     cov.setNuggetFactor(0.0)
     x_covariance_collection.append(cov)
@@ -78,7 +78,7 @@ SA = "CSA"
 """Initialization"""
 if weightf == "Exp":
     weightFunction = HSICSAWeightFunctions.HSICSAExponentialWeightFunction(
-        C, [0.5, outputSample.computeStandardDeviation()[0, 0]]
+        C, [0.5, outputSample.computeStandardDeviation()[0]]
     )
 elif weightf == "Ind":
     weightFunction = HSICSAWeightFunctions.HSICSAStepWeightFunction(C)
@@ -87,7 +87,7 @@ elif weightf == "Ind":
 if SA == "GSA" or "CSA":
     y_covariance = ot.SquaredExponential()
     y_covariance.setScale(
-        [outputSample.computeStandardDeviation()[0, 0]]
+        outputSample.computeStandardDeviation()
     )  # Gaussian kernel parameterization
 
 
