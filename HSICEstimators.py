@@ -262,7 +262,6 @@ class GSAHSICEstimator(CSAHSICEstimator):
             p = self.HSICstat._computePValue(gamma, self.n, HSIC_obs, mHSIC)
 
             self.PValuesAsymptotic.add(p)
-        self._alreadyComputedPValuesAsymptotic = True
         return 0
 
 
