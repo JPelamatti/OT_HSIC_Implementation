@@ -174,9 +174,6 @@ class CSAHSICEstimator:
         return 0
 
     def drawPValuesAsymptotic(self):
-        if self.PValuesAsymptotic.getDimension() == 0:
-            self._computePValuesAsymptotic()
-         
         plt.figure()
         plt.plot(np.arange(1, self.d + 1), self.getPValuesAsymptotic(), "*")
         plt.xticks(np.arange(1, self.d + 1))
