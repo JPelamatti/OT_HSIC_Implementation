@@ -156,11 +156,8 @@ class CSAHSICEstimator:
         return 0
 
     def drawR2HSICIIndices(self):
-        if self.R2HSICIndices.getDimension() == 0:
-            self._computeIndices()
-         
         plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.R2HSICIndices, "*")
+        plt.plot(np.arange(1, self.d + 1), self.getR2HSICIndices(), "*")
         plt.xticks(np.arange(1, self.d + 1))
         plt.xlabel("Variable index")
         plt.ylabel("R2-HSIC indices")
