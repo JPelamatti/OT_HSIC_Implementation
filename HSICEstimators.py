@@ -147,11 +147,8 @@ class CSAHSICEstimator:
         return ot.Point(self.PValuesAsymptotic)
     
     def drawHSICIndices(self):
-        if self.HSIC_XY.getDimension() == 0:
-            self._computeIndices()
-                 
         plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.HSIC_XY, "*")
+        plt.plot(np.arange(1, self.d + 1), self.getHSICIndices(), "*")
         plt.xticks(np.arange(1, self.d + 1))
         plt.xlabel("Variable index")
         plt.ylabel("HSIC indices")
