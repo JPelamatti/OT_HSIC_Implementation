@@ -79,18 +79,6 @@ class HSICuStat(HSICStat):
 
     def _computeHSICIndex(self, V1, V2, Cov1, Cov2, W):
 
-        # W is a mute parameters which allows to call in the same fashion both estimators
-        # Kv1 = self.computeGramMatrix(V1,Cov1)
-        # Kv2 = self.computeGramMatrix(V2,Cov2)
-
-        # HSIC = 0
-        # for i in range(n):
-        #     for j in range(n):
-        #         Aij = Kv1[i,j] - np.mean(Kv1[i,:]) - np.mean(Kv1[:,j])  + np.mean(Kv1)
-        #         Bij = Kv2[i,j] - np.mean(Kv2[i,:]) - np.mean(Kv2[:,j])  + np.mean(Kv2)
-        #         HSIC += Aij*Bij
-        # HSIC = 1/n**2*HSIC
-
         n = W.shape[0]
         Kv1 = Cov1.discretize(V1)
         Kv1_ = Kv1 - diag(diag(Kv1))

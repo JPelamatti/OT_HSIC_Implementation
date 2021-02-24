@@ -25,90 +25,89 @@ class CSAHSICEstimator:
         self.weightFunction = weightFunction
         self.n = X.getSize()
         self.d = X.getDimension()
-        self._alreadyComputedPValuesAsymptotic = False
-        self.setPermutationBootstrapSize(10000)
+        self.PValuesAsymptotic = ot.Point()
+        self.HSIC_XY = ot.Point()
+        self.R2HSICIndices = ot.Point()
+        self.setPermutationBootstrapSize(1000)
 
     def getStatLetter(self):
         """Return the letter of the statistic used as HSIC estimator."""
         return self.HSICstat.getStatLetter()
 
     def _computeWeightMatrix(self, Y):
-
-        W = np.zeros((self.n, self.n))
-
-        w = np.empty(self.n)
-        for i in range(self.n):
-            w[i] = self.weightFunction.function(Y[i])
-        w = w / np.mean(w)
-        np.fill_diagonal(W, w)
+        
+        if self.weightFunction == None:  # GSA case
+            W = np.eye(self.n)
+            
+        else:            
+            W = np.zeros((self.n, self.n))
+    
+            w = np.empty(self.n)
+            for i in range(self.n):
+                w[i] = self.weightFunction.function(Y[i])
+            w = w / np.mean(w)
+            np.fill_diagonal(W, w)
 
         return W
 
-    def computeHSICIndex(self, V1, V2, Cov1, Cov2, W):
+    def _computeHSICIndex(self, V1, V2, Cov1, Cov2, W):
         return self.HSICstat._computeHSICIndex(V1, V2, Cov1, Cov2, W)
 
-    def computeIndices(self):
+    def _computeIndices(self):
         W = self._computeWeightMatrix(self.Y)
 
-        self.HSIC_XY = []
-        self.HSIC_XX = []
+        self.HSIC_XX = ot.Point()
 
         for dim in range(self.d):
 
-            self.HSIC_XY.append(
-                self.computeHSICIndex(
+            self.HSIC_XY.add(
+                self._computeHSICIndex(
                     self.X[:, dim], self.Y, self.CovX[dim], self.CovY, W
                 )
             )
-            self.HSIC_XX.append(
-                self.computeHSICIndex(
+            self.HSIC_XX.add(
+                self._computeHSICIndex(
                     self.X[:, dim], self.X[:, dim], self.CovX[dim], self.CovX[dim], W
                 )
             )
 
-        self.HSIC_YY = self.computeHSICIndex(self.Y, self.Y, self.CovY, self.CovY, W)
+        self.HSIC_YY = self._computeHSICIndex(self.Y, self.Y, self.CovY, self.CovY, W)
 
-        self.R2HSICIndices = []
+        self.R2HSICIndices = ot.Point()
         for dim in range(self.d):
-            self.R2HSICIndices.append(
+            self.R2HSICIndices.add(
                 self.HSIC_XY[dim] / np.sqrt(self.HSIC_XX[dim] * self.HSIC_YY)
             )
 
         return 0
 
     def setPermutationBootstrapSize(self, B):
-        self._alreadyComputedPValuesPermutation = False
+        self.PValuesPermutation = ot.Point()
         self.PermutationBootstrapSize = B
 
     def getPermutationBootstrapSize(self):
         return self.PermutationBootstrapSize
 
     def _computePValuesPermutation(self):
-        if self.weightFunction == None:  # GSA case
-            W_obs = np.eye(self.n)
-        else:
-            W_obs = self._computeWeightMatrix(self.Y)
-        self.PValuesPermutation = []
 
-        # permutations = list[ot.KPermutations(self.n).generate()] ###Does not work, too computationaly intensive
-        # perm_selected = random.sample(permutations,self.PermutationBootstrapSize)
+        W_obs = self._computeWeightMatrix(self.Y)
+        self.PValuesPermutation = ot.Point()
+
+        N_permutations = ot.KPermutationsDistribution(self.n, self.n).getSample(self.PermutationBootstrapSize)
+        permuted_values = [[int(x) for x in N_permutations[j]] for j in range(self.PermutationBootstrapSize)]
 
         for dim in range(self.d):
-            HSIC_obs = self.computeHSICIndex(
+            HSIC_obs = self._computeHSICIndex(
                 self.X[:, dim], self.Y, self.CovX[dim], self.CovY, W_obs
             )
             HSIC_l = []
-            for b in range(self.PermutationBootstrapSize):
-                Y_p = np.random.permutation(self.Y)
-                # Y_p = self.Y[[perm_selected[b]]]
+            for perm in permuted_values:
+                Y_p = self.Y[perm]
 
-                if self.weightFunction == None:  # GSA case
-                    W = np.eye(self.n)
-                else:
-                    W = self._computeWeightMatrix(Y_p)
+                W = self._computeWeightMatrix(Y_p)
 
                 HSIC_l.append(
-                    self.computeHSICIndex(
+                    self._computeHSICIndex(
                         self.X[:, dim], Y_p, self.CovX[dim], self.CovY, W
                     )
                 )
@@ -117,8 +116,7 @@ class CSAHSICEstimator:
                 self.PermutationBootstrapSize + 1
             )
 
-            self.PValuesPermutation.append(p)
-        self._alreadyComputedPValuesPermutation = True
+            self.PValuesPermutation.add(p)
         return 0
 
     def _computePValuesAsymptotic(self):
@@ -127,24 +125,30 @@ class CSAHSICEstimator:
         )
 
     def getHSICIndices(self):
-        return self.HSIC_XY
+        if self.HSIC_XY.getDimension() == 0:
+            self._computeIndices()
+        return ot.Point(self.HSIC_XY)
 
     def getR2HSICIIndices(self):
-        return self.R2HSICIndices
+        if self.R2HSICIndices.getDimension() == 0:
+            self._computeIndices()                  
+        return ot.Point(self.R2HSICIndices)
 
     def getPValuesPermutation(self):
-        if not self._alreadyComputedPValuesPermutation:
+        if self.PValuesPermutation.getDimension() == 0:
             self._computePValuesPermutation()
+
         return ot.Point(self.PValuesPermutation)
 
     def getPValuesAsymptotic(self):
-        if not self._alreadyComputedPValuesAsymptotic:
+        if self.PValuesAsymptotic.getDimension() == 0:
             self._computePValuesAsymptotic()
+         
         return ot.Point(self.PValuesAsymptotic)
-
+    
     def drawHSICIndices(self):
         plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.HSIC_XY, "*")
+        plt.plot(np.arange(1, self.d + 1), self.getHSICIndices(), "*")
         plt.xticks(np.arange(1, self.d + 1))
         plt.xlabel("Variable index")
         plt.ylabel("HSIC indices")
@@ -153,7 +157,7 @@ class CSAHSICEstimator:
 
     def drawR2HSICIIndices(self):
         plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.R2HSICIndices, "*")
+        plt.plot(np.arange(1, self.d + 1), self.getR2HSICIndices(), "*")
         plt.xticks(np.arange(1, self.d + 1))
         plt.xlabel("Variable index")
         plt.ylabel("R2-HSIC indices")
@@ -194,17 +198,13 @@ class GSAHSICEstimator(CSAHSICEstimator):
         self.weightFunction = None
         self.n = X.getSize()
         self.d = X.getDimension()
-        self._alreadyComputedPValuesAsymptotic = False
-        self.setPermutationBootstrapSize(10000)
-
-    def _computeWeightMatrix(self, Y):
-
-        W = np.eye(self.n)
-
-        return W
+        self.PValuesAsymptotic = ot.Point()
+        self.HSIC_XY = ot.Point()
+        self.R2HSICIndices = ot.Point()
+        self.setPermutationBootstrapSize(1000)
 
     def _computePValuesAsymptotic(self):
-        W = np.eye(self.n)
+        W = self._computeWeightMatrix(self.Y)
 
         self.PValuesAsymptotic = []
 
@@ -214,7 +214,7 @@ class GSAHSICEstimator(CSAHSICEstimator):
         By = H @ Ky @ H
 
         for dim in range(self.d):
-            HSIC_obs = self.computeHSICIndex(
+            HSIC_obs = self._computeHSICIndex(
                 self.X[:, dim], self.Y, self.CovX[dim], self.CovY, W
             )
 
@@ -249,8 +249,7 @@ class GSAHSICEstimator(CSAHSICEstimator):
             gamma = ot.Gamma(alpha, 1 / beta)
             p = self.HSICstat._computePValue(gamma, self.n, HSIC_obs, mHSIC)
 
-            self.PValuesAsymptotic.append(p)
-        self._alreadyComputedPValuesAsymptotic = True
+            self.PValuesAsymptotic.add(p)
         return 0
 
 
@@ -260,17 +259,20 @@ class TSAHSICEstimator(GSAHSICEstimator):
 
     """
 
-    def __init__(self, CovarianceList, X, Y, weightFunction, HSICstat=HSICvStat()):
+    def __init__(self, CovarianceList, X, Y, filterFunction, HSICstat=HSICvStat()):
         self.CovX = CovarianceList[0]
         self.CovY = CovarianceList[1]
         self.X = X
         self.Y = Y
         self.HSICstat = HSICstat
-        self.weightFunction = weightFunction
+        self.weightFunction = None
+        self.filterFunction = filterFunction
         self.n = X.getSize()
         self.d = X.getDimension()
-        self._alreadyComputedPValuesAsymptotic = False
-        self.setPermutationBootstrapSize(10000)
+        self.PValuesAsymptotic = ot.Point()
+        self.HSIC_XY = ot.Point()
+        self.R2HSICIndices = ot.Point()
+        self.setPermutationBootstrapSize(1000)
 
         for i in range(self.n):
-            self.Y[i] = [self.weightFunction.function(self.Y[i])]
+            self.Y[i] = [self.filterFunction.function(self.Y[i])]
