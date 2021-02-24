@@ -168,9 +168,6 @@ class CSAHSICEstimator:
         return 0
 
     def drawPValuesPermutation(self):
-        if self.PValuesPermutation.getDimension() == 0:
-            self._computePValuesPermutation()
-                 
         plt.figure()
         plt.plot(np.arange(1, self.d + 1), self.getPValuesPermutation(), "*")
         plt.xticks(np.arange(1, self.d + 1))
