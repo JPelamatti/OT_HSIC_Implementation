@@ -1,9 +1,9 @@
 rm(list = ls())
 library(R.utils)
-# library(sensitivity)
-source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/sensiHSIC.R')
-source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/base.R')
-source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/weightTSA.R')
+library(sensitivity)
+#source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/sensiHSIC.R')
+#source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/base.R')
+#source('/home/f37280/Documents/Openturns/CDC HSIC/Codes/sensitivity-master/R/weightTSA.R')
 
 #Import des donnees
 Data = read.csv("sample.csv", sep = ',')  # read csv file 

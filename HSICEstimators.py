@@ -144,17 +144,14 @@ class CSAHSICEstimator:
         return ot.Point(self.PValuesAsymptotic)
     
 
-
     def drawHSICIndices(self):
         
         HSICIndices =  self.getHSICIndices()
         graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(HSICIndices,self.X.getDescription(),'HSIC Indices')
         graph.setAutomaticBoundingBox(True)
         return graph
-
         
     def drawR2HSICIndices(self):
-
         R2HSICIndices =  self.getR2HSICIndices()
         graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(R2HSICIndices,self.X.getDescription(),'HSIC Indices')
         graph.setAutomaticBoundingBox(True)
@@ -279,3 +276,4 @@ class TSAHSICEstimator(GSAHSICEstimator):
         self.setPermutationBootstrapSize(1000)
 
         self.Y = self.filterFunction.function(self.Y)
+
