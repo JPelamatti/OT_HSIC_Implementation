@@ -41,9 +41,7 @@ class CSAHSICEstimator:
         else:            
             W = np.zeros((self.n, self.n))
     
-            w = np.empty(self.n)
-            for i in range(self.n):
-                w[i] = self.weightFunction.function(Y[i])
+            w = np.array(self.weightFunction.function(Y))
             w = w / np.mean(w)
             np.fill_diagonal(W, w)
 
@@ -280,5 +278,4 @@ class TSAHSICEstimator(GSAHSICEstimator):
         self.R2HSICIndices = ot.Point()
         self.setPermutationBootstrapSize(1000)
 
-        for i in range(self.n):
-            self.Y[i] = [self.filterFunction.function(self.Y[i])]
+        self.Y = self.filterFunction.function(self.Y)
