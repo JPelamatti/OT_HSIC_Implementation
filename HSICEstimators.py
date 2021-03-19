@@ -1,8 +1,7 @@
 import numpy as np
 import openturns as ot
-import matplotlib.pyplot as plt
 from HSICStat import HSICvStat
-
+import copy
 
 class CSAHSICEstimator:
     """
@@ -129,7 +128,7 @@ class CSAHSICEstimator:
             self._computeIndices()
         return ot.Point(self.HSIC_XY)
 
-    def getR2HSICIIndices(self):
+    def getR2HSICIndices(self):
         if self.R2HSICIndices.getDimension() == 0:
             self._computeIndices()                  
         return ot.Point(self.R2HSICIndices)
@@ -146,41 +145,40 @@ class CSAHSICEstimator:
          
         return ot.Point(self.PValuesAsymptotic)
     
+
+
     def drawHSICIndices(self):
-        plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.getHSICIndices(), "*")
-        plt.xticks(np.arange(1, self.d + 1))
-        plt.xlabel("Variable index")
-        plt.ylabel("HSIC indices")
+        
+        HSICIndices =  self.getHSICIndices()
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(HSICIndices,self.X.getDescription(),'HSIC Indices')
+        graph.setAutomaticBoundingBox(True)
+        return graph
 
-        return 0
+        
+    def drawR2HSICIndices(self):
 
-    def drawR2HSICIIndices(self):
-        plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.getR2HSICIndices(), "*")
-        plt.xticks(np.arange(1, self.d + 1))
-        plt.xlabel("Variable index")
-        plt.ylabel("R2-HSIC indices")
+        R2HSICIndices =  self.getR2HSICIndices()
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(R2HSICIndices,self.X.getDescription(),'HSIC Indices')
+        graph.setAutomaticBoundingBox(True)
+        return graph
 
-        return 0
-
+        
     def drawPValuesPermutation(self):
-        plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.getPValuesPermutation(), "*")
-        plt.xticks(np.arange(1, self.d + 1))
-        plt.xlabel("Variable index")
-        plt.ylabel("p-values")
 
-        return 0
+        PValuesPermutation =  self.getPValuesPermutation()
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesPermutation,self.X.getDescription(),'HSIC Indices')
+        graph.setAutomaticBoundingBox(True)
+        return graph
+
 
     def drawPValuesAsymptotic(self):
-        plt.figure()
-        plt.plot(np.arange(1, self.d + 1), self.getPValuesAsymptotic(), "*")
-        plt.xticks(np.arange(1, self.d + 1))
-        plt.xlabel("Variable index")
-        plt.ylabel("p-values")
 
-        return 0
+        PValuesAsymptotic =  self.getPValuesAsymptotic()
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesAsymptotic,self.X.getDescription(),'HSIC Indices')
+        graph.setAutomaticBoundingBox(True)
+        return graph
+
+
 
 
 class GSAHSICEstimator(CSAHSICEstimator):
@@ -206,11 +204,15 @@ class GSAHSICEstimator(CSAHSICEstimator):
     def _computePValuesAsymptotic(self):
         W = self._computeWeightMatrix(self.Y)
 
-        self.PValuesAsymptotic = []
+        self.PValuesAsymptotic = ot.Point()
 
         H = np.eye(self.n) - 1 / self.n * np.ones((self.n, self.n))
-        Ky = self.CovY.discretize(self.Y)
-        Ey = 1 / self.n / (self.n - 1) * np.sum(Ky - np.diag(np.diag(Ky)))
+        Ky = np.array(self.CovY.discretize(self.Y))
+        
+        Ky_mdiag = copy.deepcopy(Ky)
+        np.fill_diagonal(Ky_mdiag,0.)
+            
+        Ey = 1 / self.n / (self.n - 1) * np.sum(Ky_mdiag)
         By = H @ Ky @ H
 
         for dim in range(self.d):
@@ -218,13 +220,17 @@ class GSAHSICEstimator(CSAHSICEstimator):
                 self.X[:, dim], self.Y, self.CovX[dim], self.CovY, W
             )
 
-            Kx = self.CovX[dim].discretize(self.X[:, dim])
+            Kx = np.array(self.CovX[dim].discretize(self.X[:, dim]))
+            
+            Kx_mdiag = copy.deepcopy(Kx)
+            np.fill_diagonal(Kx_mdiag,0.)
 
-            Ex = 1 / self.n / (self.n - 1) * np.sum(Kx - np.diag(np.diag(Kx)))
+            Ex = 1 / self.n / (self.n - 1) * np.sum(Kx_mdiag)
 
             Bx = H @ Kx @ H
             B = np.multiply(Bx, By)
             B = B ** 2
+            np.fill_diagonal(B,0.)
 
             mHSIC = 1 / self.n * (1 + Ex * Ey - Ex - Ey)
             varHSIC = (
@@ -236,7 +242,7 @@ class GSAHSICEstimator(CSAHSICEstimator):
                 / (self.n - 2)
                 / (self.n - 3)
                 * np.ones((1, self.n))
-                @ (B - np.diag(np.diag(B)))
+                @ B
                 @ np.ones((self.n, 1))
                 / self.n
                 / (self.n - 1)

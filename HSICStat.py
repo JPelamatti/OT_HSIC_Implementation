@@ -6,7 +6,7 @@ Created on Sat Feb 20 13:36:28 2021
 @author: Julien PELAMATTI, Joseph MURÉ
 """
 
-from numpy import trace, diag, ones, eye
+from numpy import trace, ones, eye, fill_diagonal, array
 
 
 class HSICStat:
@@ -80,10 +80,10 @@ class HSICuStat(HSICStat):
     def _computeHSICIndex(self, V1, V2, Cov1, Cov2, W):
 
         n = W.shape[0]
-        Kv1 = Cov1.discretize(V1)
-        Kv1_ = Kv1 - diag(diag(Kv1))
-        Kv2 = Cov2.discretize(V2)
-        Kv2_ = Kv2 - diag(diag(Kv1))
+        Kv1 = array(Cov1.discretize(V1))
+        fill_diagonal(Kv1,0)
+        Kv2 = array(Cov2.discretize(V2))
+        fill_diagonal(Kv2,0)
         One = ones((n, 1))
 
         HSIC = (
@@ -91,9 +91,9 @@ class HSICuStat(HSICStat):
             / n
             / (n - 3)
             * (
-                trace(Kv1_ @ Kv2_)
-                - 2 / (n - 2) * One.T @ Kv1_ @ Kv2_ @ One
-                + One.T @ Kv1_ @ One * One.T @ Kv2_ @ One / (n - 1) / (n - 2)
+                trace(Kv1 @ Kv2)
+                - 2 / (n - 2) * One.T @ Kv1 @ Kv2 @ One
+                + One.T @ Kv1 @ One * One.T @ Kv2 @ One / (n - 1) / (n - 2)
             )
         )
 

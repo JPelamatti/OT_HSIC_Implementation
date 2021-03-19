@@ -18,7 +18,6 @@ fun = ot.SymbolicFunction(
 
 """Definition of the kronecker covariance function"""
 
-
 def rho(t):
     x = t[0]
     if x == 0:
@@ -46,15 +45,15 @@ x_covariance_collection = []
 for i in range(d):
     cov = ot.SquaredExponential()
     cov.setScale(
-        inputSample[:, i].computeStandardDeviation()
-    )  # Gaussian kernel parameterization
+        [inputSample[:, i].computeStandardDeviation()[0,0]]
+    )  # Gaussian kernel parameterization, ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
     cov.setNuggetFactor(0.0)
     x_covariance_collection.append(cov)
 
 
 """test parameters"""
-# Estimatortype = HSICuStat()
-Estimatortype = HSICvStat()
+Estimatortype = HSICuStat()
+# Estimatortype = HSICvStat()
 
 B = 1000  # Only used for permutatio p-value estimation
 
@@ -64,14 +63,14 @@ weightf = "Exp"  # Only used for CSA and TSA
 # OutputCov = 'Kron' #Only used for TSA and Ind weight function
 OutputCov = "Exp"
 
-# SA = 'GSA'
+SA = 'GSA'
 # SA = 'TSA'
-SA = "CSA"
+# SA = "CSA"
 
 """Initialization"""
 if weightf == "Exp":
     weightFunction = HSICSAWeightFunctions.HSICSAExponentialWeightFunction(
-        C, [0.5, outputSample.computeStandardDeviation()[0]]
+        C, [0.5, outputSample.computeStandardDeviation()[0,0]] # ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
     )
 elif weightf == "Ind":
     weightFunction = HSICSAWeightFunctions.HSICSAStepWeightFunction(C)
@@ -80,7 +79,7 @@ elif weightf == "Ind":
 if SA == "GSA" or "CSA":
     y_covariance = ot.SquaredExponential()
     y_covariance.setScale(
-        outputSample.computeStandardDeviation()
+        [outputSample.computeStandardDeviation()[0,0]]
     )  # Gaussian kernel parameterization
 
 
@@ -116,10 +115,11 @@ if SA == "CSA":
 
 """Testing"""
 
-Estimator.computeIndices()
-print(Estimator.getR2HSICIIndices())
+print(Estimator.getR2HSICIndices())
 print(Estimator.HSIC_XY)
 
-Estimator.setPermutationBootstrapSize(100)
+Estimator.setPermutationBootstrapSize(200)
 
-print(Estimator.getPValuesPermutation())
+print(Estimator.getPValuesAsymptotic())
+
+Estimator.drawHSICIndices()

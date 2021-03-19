@@ -20,12 +20,12 @@ for(i in 1:dim(X)[2])
   kernelX = c(kernelX,'rbf')
 }
 
-# x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf', estimator.type = 'U-stat', test.method = "Permutation", B = 10000)
-# x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf', estimator.type = 'U-stat', test.method = "Asymptotic")
+# x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf', estimator.type = 'V-stat', test.method = "Permutation", B = 10000)
+x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf', estimator.type = 'U-stat', test.method = "Asymptotic")
 # x <- sensiHSIC(model = NULL, X = X, target =  list(c = 5., upper = TRUE,type = "exp1side", param = 0.5), kernelX = kernelX, kernelY = 'rbf', estimator.type = 'V-stat', test.method = "Asymptotic")
 # x <- sensiHSIC(model = NULL, X = X, target =  list(c = 5., upper = TRUE,type = "indicTh", param = 0.5), kernelX = kernelX, kernelY = 'categ', estimator.type = 'U-stat', test.method = "Permutation", B = 10000)
 # x <- sensiHSIC(model = NULL, X = X, target =  list(c = 5., upper = TRUE,type = "indicTh", param = 0.5), kernelX = kernelX, kernelY = 'categ', estimator.type = 'U-stat', test.method = "Asymptotic")
-x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf',cond = list(c = 5., upper = TRUE,type = "exp1side", param = 0.5), estimator.type = 'V-stat', test.method = "Permutation", B = 1000)
+# x <- sensiHSIC(model = NULL, X = X, kernelX = kernelX, kernelY = 'rbf',cond = list(c = 5., upper = TRUE,type = "exp1side", param = 0.5), estimator.type = 'V-stat', test.method = "Permutation", B = 1000)
 
                
 R = tell(x,y)
