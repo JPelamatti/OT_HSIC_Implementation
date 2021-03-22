@@ -145,7 +145,6 @@ class CSAHSICEstimator:
     
 
     def drawHSICIndices(self):
-        
         HSICIndices =  self.getHSICIndices()
         graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(HSICIndices,self.X.getDescription(),'HSIC Indices')
         graph.setAutomaticBoundingBox(True)
@@ -153,23 +152,21 @@ class CSAHSICEstimator:
         
     def drawR2HSICIndices(self):
         R2HSICIndices =  self.getR2HSICIndices()
-        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(R2HSICIndices,self.X.getDescription(),'HSIC Indices')
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(R2HSICIndices,self.X.getDescription(),'R2-HSIC Indices')
         graph.setAutomaticBoundingBox(True)
         return graph
 
         
     def drawPValuesPermutation(self):
-
         PValuesPermutation =  self.getPValuesPermutation()
-        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesPermutation,self.X.getDescription(),'HSIC Indices')
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesPermutation,self.X.getDescription(),'Permutation-based p-values')
         graph.setAutomaticBoundingBox(True)
         return graph
 
 
     def drawPValuesAsymptotic(self):
-
         PValuesAsymptotic =  self.getPValuesAsymptotic()
-        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesAsymptotic,self.X.getDescription(),'HSIC Indices')
+        graph = ot.SobolIndicesAlgorithm().DrawCorrelationCoefficients(PValuesAsymptotic,self.X.getDescription(),'Asymptotic p-values')
         graph.setAutomaticBoundingBox(True)
         return graph
 
