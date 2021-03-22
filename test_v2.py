@@ -33,8 +33,9 @@ N = loaded_sample.getSize()
 inputSample = loaded_sample[:, 0:d]
 outputSample = loaded_sample[:, d]
 
-C = [[5.0, np.inf]]
+C = [[5.0, np.inf]] #Critical domain, this is used for TSA and CSA. In case multiple critical domains are considered, one can define C = [[-10.0,1.5],[33.1,46.0]]
 
+"""Covariance models associated to the inputs. An empyrical parameterization rule is used for the lenghtscale parameters"""
 x_covariance_collection = []
 for i in range(d):
     cov = ot.SquaredExponential()
@@ -52,7 +53,7 @@ Estimatortype = HSICvStat()
 B = 1000  # Only used for permutatio p-value estimation
 
 # weightf = "Exp"  # Only used for CSA and TSA
-weightf = 'Ind' #Only used for CSA and TSA
+weightf = 'Ind' #Only used for TSA
 
 # OutputCov = 'Kron' #Only used for TSA combined with Ind weight function
 OutputCov = "Exp"
@@ -108,10 +109,10 @@ if SA == "CSA":
 """Testing"""
 
 print(Estimator.getR2HSICIndices())
-print(Estimator.HSIC_XY)
+print(Estimator.getHSICIndices())
 
-# Estimator.setPermutationBootstrapSize(1000)
-# print(Estimator.getPValuesPermutation())
+Estimator.setPermutationBootstrapSize(1000)
+print(Estimator.getPValuesPermutation())
 
 # print(Estimator.getPValuesAsymptotic())
 
