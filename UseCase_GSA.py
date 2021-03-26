@@ -61,9 +61,11 @@ print(Estimator.getHSICIndices())
 
 B = 1000  # Only used for permutatio p-value estimation
 
-Estimator.setPermutationBootstrapSize(1000)
+#Permutation-based estimation of p-values
+Estimator.setPermutationBootstrapSize(B)
 print(Estimator.getPValuesPermutation())
 
+#Asymptotic estimation of p-values
 print(Estimator.getPValuesAsymptotic())
 
 View(Estimator.drawR2HSICIndices())

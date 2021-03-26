@@ -29,7 +29,7 @@ class HSICStat:
         return self._stat
 
     def _computePValue(self, gamma, n, HSIC_obs, mHSIC):
-        return gamma.computeComplementaryCDF(HSIC_obs * n + mHSIC * n)
+        return gamma.computeComplementaryCDF(HSIC_obs * n)
 
 
 class HSICvStat(HSICStat):
@@ -58,8 +58,6 @@ class HSICvStat(HSICStat):
     def _isCSACompatible(self):
         return True
 
-    def _computePValue(self, gamma, n, HSIC_obs, mHSIC):
-        return gamma.computeComplementaryCDF(HSIC_obs * n)
 
 
 class HSICuStat(HSICStat):
@@ -98,3 +96,6 @@ class HSICuStat(HSICStat):
         )
 
         return HSIC[0, 0]
+    
+    def _computePValue(self, gamma, n, HSIC_obs, mHSIC):
+        return gamma.computeComplementaryCDF(HSIC_obs * n + mHSIC * n)

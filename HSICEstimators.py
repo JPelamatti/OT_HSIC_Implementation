@@ -272,5 +272,9 @@ class TSAHSICEstimator(GSAHSICEstimator):
         self.R2HSICIndices = ot.Point()
         self.setPermutationBootstrapSize(1000)
 
-        self.Y = self.filterFunction.function(self.Y)
+        self._outputSampleFiltering()
+        
+    def _outputSampleFiltering(self):
+        self.Y = ot.Sample(self.filterFunction.function(self.Y))
+
 
