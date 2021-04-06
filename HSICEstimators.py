@@ -54,7 +54,8 @@ class CSAHSICEstimator:
         W = self._computeWeightMatrix(self.Y)
 
         self.HSIC_XX = ot.Point()
-
+        self.HSIC_XY = ot.Point()
+        
         for dim in range(self.d):
 
             self.HSIC_XY.add(
