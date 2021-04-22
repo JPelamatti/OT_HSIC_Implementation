@@ -3,11 +3,10 @@ import openturns as ot
 import HSICEstimators
 import HSICSAWeightFunctions
 from HSICStat import HSICvStat, HSICuStat
+from KroneckerCov import KroneckerKernel
 
 """Definition of the kronecker covariance function"""
-mesh  = ot.Mesh([[0.],[1.]]) 
-covMat = ot.CovarianceMatrix(2)
-kronCov = ot.UserDefinedCovarianceModel(mesh,covMat)
+kronCov = KroneckerKernel()
 
 """Test -case definition"""
 X1 = ot.Uniform(-np.pi, np.pi)

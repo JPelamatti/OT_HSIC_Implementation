@@ -5,11 +5,10 @@ import matplotlib.pyplot as plt
 import HSICSAWeightFunctions
 from HSICStat import HSICvStat, HSICuStat
 from openturns.viewer import View
+from KroneckerCov import KroneckerKernel
 
 """Definition of the kronecker covariance function"""
-mesh  = ot.Mesh([[0.],[1.]]) 
-covMat = ot.CovarianceMatrix(2)
-kronCov = ot.UserDefinedCovarianceModel(mesh,covMat)
+kronCov = KroneckerKernel()
 
 """Test -case definition"""
 X1 = ot.Normal()
