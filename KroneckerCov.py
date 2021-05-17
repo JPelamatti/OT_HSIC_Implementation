@@ -8,4 +8,3 @@ class KroneckerKernel(ot.StationaryFunctionalCovarianceModel):
 
     def rho(self,t):
         return [int(t[0]==0.)]
-

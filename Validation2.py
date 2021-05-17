@@ -1,10 +1,8 @@
 import numpy as np
 import openturns as ot
 import HSICEstimators
-import matplotlib.pyplot as plt
 import HSICSAWeightFunctions
 from HSICStat import HSICvStat, HSICuStat
-from openturns.viewer import View
 from KroneckerCov import KroneckerKernel
 
 """Definition of the kronecker covariance function"""
@@ -90,7 +88,7 @@ x_covariance_collection = []
 for i in range(d):
     cov = ot.SquaredExponential()
     cov.setScale(
-        [inputSample[:, i].computeStandardDeviation()[0,0]]
+        [inputSample[:, i].computeStandardDeviation()[0]]
     )  # Gaussian kernel parameterization, ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
     cov.setNuggetFactor(0.0)
     x_covariance_collection.append(cov)
@@ -100,7 +98,7 @@ def computeValues(Estimatortype,OutputCov,SA, weightf = None):
     """Initialization"""
     if weightf == "Exp":
         weightFunction = HSICSAWeightFunctions.HSICSAExponentialWeightFunction(
-            C, [0.5, outputSample.computeStandardDeviation()[0,0]] # ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
+            C, [0.5, outputSample.computeStandardDeviation()[0]] # ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
         )
     elif weightf == "Ind":
         weightFunction = HSICSAWeightFunctions.HSICSAStepWeightFunction(C)
@@ -109,7 +107,7 @@ def computeValues(Estimatortype,OutputCov,SA, weightf = None):
     if SA == "GSA" or "CSA":
         y_covariance = ot.SquaredExponential()
         y_covariance.setScale(
-            [outputSample.computeStandardDeviation()[0,0]]
+            [outputSample.computeStandardDeviation()[0]]
         )  # Gaussian kernel parameterization
     
     
