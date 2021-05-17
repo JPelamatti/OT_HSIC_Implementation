@@ -1,4 +1,9 @@
 # Implementation prototype for the HSIC sensitivity indices on the Openturns platform
+
+Dependencies :
+  - `openturns 1.17`
+  - `numpy 1.20.2`
+
 Files :
   - `HSICEstimators.py` : contains the classes associated to the HSIC estimators
   - `HSICSAWeightFunctions.py` : contains the weight function class
