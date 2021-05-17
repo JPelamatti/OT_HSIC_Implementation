@@ -1,6 +1,6 @@
 # Implementation prototype for the HSIC sensitivity indices on the OpenTURNS platform
 
-The following code was developed by EDF R&D based on publically available scientific literature.
+The following code was developed by EDF R&D based on publicly available scientific literature.
 
 Dependencies :
   - `openturns 1.17`
