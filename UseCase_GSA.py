@@ -32,14 +32,14 @@ x_covariance_collection = []
 for i in range(d):
     cov = ot.SquaredExponential()
     cov.setScale(
-        [inputSample[:, i].computeStandardDeviation()[0,0]]
+        [inputSample[:, i].computeStandardDeviation()[0]]
     )  # Empirical Gaussian kernel parameterization, ATTENTION, THIS VARIES DEPENDING ON THE PACKAGE VERSION!
     cov.setNuggetFactor(0.0)
     x_covariance_collection.append(cov)
 
 y_covariance = ot.SquaredExponential()
 y_covariance.setScale(
-    [outputSample.computeStandardDeviation()[0,0]]
+    [outputSample.computeStandardDeviation()[0]]
 )  # Empirical Gaussian kernel parameterization
 
 CovarianceList = [x_covariance_collection, y_covariance]
